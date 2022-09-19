@@ -27,12 +27,12 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set ( QCUSTOMPLOT_SOURCES
-    qcustomplot.cpp
-    qcustomplot.h
+    ${PROJECT_NAME}/qcustomplot.cpp
+    ${PROJECT_NAME}/qcustomplot.h
 )
 
 set(GLOBAL_HEADERS
-    qcustomplot.h
+    ${PROJECT_NAME}/qcustomplot.h
     )
 
 add_library(${PROJECT_NAME} STATIC ${QCUSTOMPLOT_SOURCES})
