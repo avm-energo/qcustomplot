@@ -5,6 +5,17 @@ set(QCUSTOMPLOT_VERSION_MAJOR 2)
 set(QCUSTOMPLOT_VERSION_MINOR 1)
 set(QCUSTOMPLOT_VERSION_RELEASE 0)
 
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
 find_package(
   QT NAMES Qt6 Qt5
   COMPONENTS Core Widgets PrintSupport REQUIRED
@@ -21,11 +32,6 @@ endif()
 
 message(STATUS "Qt version: ${QT_VERSION_MAJOR}")
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
 set ( QCUSTOMPLOT_SOURCES
     qcustomplot.cpp
     qcustomplot.h
@@ -36,30 +42,29 @@ set(GLOBAL_HEADERS
     )
 
 add_library(${PROJECT_NAME} STATIC ${QCUSTOMPLOT_SOURCES})
-target_compile_definitions( ${PROJECT_NAME} PUBLIC -DHAVE_STATIC_BUILD )
-
-target_compile_definitions(${PROJECT_NAME} PUBLIC -DCMAKE_CONFIG)
 
 target_link_libraries( ${PROJECT_NAME} PUBLIC
 	Qt${QT_VERSION_MAJOR}::Core
 	Qt${QT_VERSION_MAJOR}::Widgets
-#	Qt${QT_VERSION_MAJOR}::Qml
-#	Qt${QT_VERSION_MAJOR}::Xml
-#	Qt${QT_VERSION_MAJOR}::Sql
-        Qt${QT_VERSION_MAJOR}::PrintSupport
-#	Qt${QT_VERSION_MAJOR}::Svg
+    Qt${QT_VERSION_MAJOR}::PrintSupport
 )
 
-target_compile_definitions( ${PROJECT_NAME} PRIVATE)
+# Define target sources
+file(GLOB_RECURSE files_cpp *.cpp)
+file(GLOB_RECURSE files_h *.h)
 
-target_include_directories( ${PROJECT_NAME} PRIVATE
-	qcustomplot)
+target_sources(${PROJECT_NAME} PRIVATE
+  ${files_cpp} ${files_h}
+)
+
+target_include_directories( ${PROJECT_NAME} PRIVATE )
 
 install(TARGETS
 	${PROJECT_NAME}
 	ARCHIVE DESTINATION lib
 	LIBRARY DESTINATION lib
-	RUNTIME DESTINATION bin)
+	RUNTIME DESTINATION bin
+    )
 
 install(FILES
   ${GLOBAL_HEADERS}
