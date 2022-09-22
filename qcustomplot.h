@@ -135,12 +135,22 @@ class QCPPolarGraph;
 #define QCUSTOMPLOT_VERSION 0x020100
 
 // decl definitions for shared library compilation/usage:
-#if defined(QT_STATIC_BUILD)
+/*#if defined(QT_STATIC_BUILD)
 #  define QCP_LIB_DECL
 #elif defined(QCUSTOMPLOT_COMPILE_LIBRARY)
 #  define QCP_LIB_DECL Q_DECL_EXPORT
 #elif defined(QCUSTOMPLOT_USE_LIBRARY)
 #  define QCP_LIB_DECL Q_DECL_IMPORT
+#else
+#  define QCP_LIB_DECL
+#endif */
+
+#ifdef _WIN32
+#if defined(QCUSTOMPLOT_COMPILE_LIBRARY)
+#  define QCP_LIB_DECL Q_DECL_EXPORT
+#else
+#  define QCP_LIB_DECL Q_DECL_IMPORT
+#endif
 #else
 #  define QCP_LIB_DECL
 #endif
