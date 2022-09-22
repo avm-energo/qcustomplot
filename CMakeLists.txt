@@ -17,16 +17,9 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
 find_package(
-  Qt${QT_VERSION_MAJOR}
+  Qt5
   COMPONENTS Core Widgets PrintSupport REQUIRED
   )
-
-# Old Qt does not provide QT_VERSION_MAJOR
-if (NOT QT_VERSION_MAJOR)
-    string(SUBSTRING ${QT_VERSION} 0 1 QT_VERSION_MAJOR)
-endif()
-
-message(STATUS "Qt version: ${QT_VERSION_MAJOR}")
 
 set ( QCUSTOMPLOT_SOURCES
     qcustomplot.cpp
@@ -37,29 +30,30 @@ set(GLOBAL_HEADERS
     qcustomplot.h
     )
 
-add_library(${PROJECT_NAME} STATIC ${QCUSTOMPLOT_SOURCES})
+if (QCUSTOMPLOT_STATIC)
+    add_library(${PROJECT_NAME} STATIC  ${QCUSTOMPLOT_SOURCES})
+    target_compile_definitions( ${PROJECT_NAME} PUBLIC -DHAVE_STATIC_BUILD)
+else()
+    add_library(${PROJECT_NAME} SHARED  ${QCUSTOMPLOT_SOURCES})
+    target_compile_definitions( ${PROJECT_NAME} PUBLIC -DQCUSTOMPLOT_COMPILE_LIBRARY)
+endif()
+
+target_compile_definitions(${PROJECT_NAME} PUBLIC -DCMAKE_CONFIG)
+
 
 target_link_libraries( ${PROJECT_NAME} PUBLIC
-	Qt${QT_VERSION_MAJOR}::Core
-	Qt${QT_VERSION_MAJOR}::Widgets
-    Qt${QT_VERSION_MAJOR}::PrintSupport
+        Qt5::Core
+        Qt5::Widgets
+    Qt5::PrintSupport
 )
 
-# Define target sources
-file(GLOB_RECURSE files_cpp *.cpp)
-file(GLOB_RECURSE files_h *.h)
-
-target_sources(${PROJECT_NAME} PRIVATE
-  ${files_cpp} ${files_h}
-)
-
-target_include_directories( ${PROJECT_NAME} PRIVATE )
+target_include_directories( ${PROJECT_NAME} PRIVATE . )
 
 install(TARGETS
-	${PROJECT_NAME}
-	ARCHIVE DESTINATION lib
-	LIBRARY DESTINATION lib
-	RUNTIME DESTINATION bin
+        ${PROJECT_NAME}
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin
     )
 
 install(FILES
