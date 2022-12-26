@@ -10,10 +10,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-option(QCUSTOMPLOT_STATIC "QCustomPlot static build" ON)
+option(QCUSTOMPLOT_STATIC:BOOL "QCustomPlot static build" ON)
 
-find_package(
-  Qt${QT_VERSION_MAJOR}
+find_package(QT NAMES Qt6 Qt5)
+find_package(Qt${QT_VERSION_MAJOR}
   COMPONENTS Core Widgets PrintSupport
   REQUIRED)
 
@@ -22,23 +22,29 @@ set(QCUSTOMPLOT_VERSION_MINOR 1)
 set(QCUSTOMPLOT_VERSION_RELEASE 0)
 
 set(QCUSTOMPLOT_SOURCES
-  qcustomplot.cpp
-  qcustomplot.h)
+  ${PROJECT_SOURCE_DIR}/qcustomplot.cpp
+  ${PROJECT_SOURCE_DIR}/qcustomplot.h)
 
 set(GLOBAL_HEADERS qcustomplot.h)
 
 if (QCUSTOMPLOT_STATIC)
-    add_library(${PROJECT_NAME} STATIC ${QCUSTOMPLOT_SOURCES})
-    target_compile_definitions(${PROJECT_NAME} PUBLIC -DHAVE_STATIC_BUILD)
-    target_link_libraries(${PROJECT_NAME} PRIVATE
-      Qt${QT_VERSION_MAJOR}::Core
-      Qt${QT_VERSION_MAJOR}::Widgets
-      Qt${QT_VERSION_MAJOR}::PrintSupport)
+  add_library(${PROJECT_NAME} STATIC ${QCUSTOMPLOT_SOURCES})
+  target_compile_definitions(${PROJECT_NAME} PUBLIC -DHAVE_STATIC_BUILD)
 else()
-    add_library(${PROJECT_NAME} SHARED  ${QCUSTOMPLOT_SOURCES})
-    target_compile_definitions(${PROJECT_NAME} PUBLIC -DQCUSTOMPLOT_COMPILE_LIBRARY)
-    target_link_libraries(${PROJECT_NAME} PUBLIC
-      Qt${QT_VERSION_MAJOR}::Core
-      Qt${QT_VERSION_MAJOR}::Widgets
-      Qt${QT_VERSION_MAJOR}::PrintSupport)
+  add_library(${PROJECT_NAME} SHARED  ${QCUSTOMPLOT_SOURCES})
+  target_compile_definitions(${PROJECT_NAME} PRIVATE -DQCUSTOMPLOT_COMPILE_LIBRARY)
+  target_compile_definitions(${PROJECT_NAME} INTERFACE -DQCUSTOMPLOT_USE_LIBRARY)
 endif()
+
+target_include_directories(${PROJECT_NAME} INTERFACE ${PROJECT_SOURCE_DIR})
+target_compile_definitions(${PROJECT_NAME} PUBLIC -DCMAKE_CONFIG)
+target_link_libraries(${PROJECT_NAME} PUBLIC
+  Qt${QT_VERSION_MAJOR}::Core
+  Qt${QT_VERSION_MAJOR}::Widgets
+  Qt${QT_VERSION_MAJOR}::PrintSupport)
+
+# --- Install libs and binaries ---
+install(TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib)
