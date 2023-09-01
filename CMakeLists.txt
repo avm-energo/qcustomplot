@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(qcustomplot LANGUAGES CXX)
+project(qcustomplot
+  LANGUAGES CXX
+  VERSION 2.1.1)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
@@ -35,6 +37,9 @@ else()
   target_compile_definitions(${PROJECT_NAME} PRIVATE -DQCUSTOMPLOT_COMPILE_LIBRARY)
   target_compile_definitions(${PROJECT_NAME} INTERFACE -DQCUSTOMPLOT_USE_LIBRARY)
 endif()
+
+# Set project version as library target property
+set_target_properties(${PROJECT_NAME} PROPERTIES VERSION ${PROJECT_VERSION})
 
 target_include_directories(${PROJECT_NAME} INTERFACE ${PROJECT_SOURCE_DIR})
 target_compile_definitions(${PROJECT_NAME} PUBLIC -DCMAKE_CONFIG)
