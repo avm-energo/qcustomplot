@@ -12,12 +12,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-option(QCUSTOMPLOT_STATIC:BOOL "QCustomPlot static build" ON)
-
 find_package(QT NAMES Qt6 Qt5)
 find_package(Qt${QT_VERSION_MAJOR}
   COMPONENTS Core Widgets PrintSupport
   REQUIRED)
+
+option(BUILD_SHARED_LIBS "Build qcustomplot as a shared library instead of static")
 
 set(QCUSTOMPLOT_VERSION_MAJOR 2)
 set(QCUSTOMPLOT_VERSION_MINOR 1)
@@ -27,9 +27,7 @@ set(QCUSTOMPLOT_SOURCES
   ${PROJECT_SOURCE_DIR}/qcustomplot.cpp
   ${PROJECT_SOURCE_DIR}/qcustomplot.h)
 
-set(GLOBAL_HEADERS qcustomplot.h)
-
-if (QCUSTOMPLOT_STATIC)
+if (BUILD_SHARED_LIBS)
   add_library(${PROJECT_NAME} STATIC ${QCUSTOMPLOT_SOURCES})
   target_compile_definitions(${PROJECT_NAME} PUBLIC -DQT_STATIC_BUILD)
 else()
