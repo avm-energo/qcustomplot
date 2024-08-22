@@ -1,6 +1,6 @@
 # Qcustomplot
 
-Fork of QCustomPlot
+Fork of QCustomPlot: https://gitlab.com/ecme2/QCustomPlot
 
 ## Getting started
 
