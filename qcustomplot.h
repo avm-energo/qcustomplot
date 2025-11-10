@@ -2059,7 +2059,6 @@ public:
 
   // getters:
   QString dateTimeFormat() const { return mDateTimeFormat; }
-  Qt::TimeSpec dateTimeSpec() const { return mDateTimeSpec; }
 #if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
   QTimeZone timeZone() const { return mTimeZone; }
 #endif
@@ -2079,12 +2078,11 @@ public:
   static QDateTime keyToDateTime(double key);
   static double dateTimeToKey(const QDateTime &dateTime);
   static double dateTimeToKey(const QDate &date,
-                              Qt::TimeSpec timeSpec = Qt::LocalTime);
+                              QTimeZone zone = QTimeZone::LocalTime);
 
 protected:
   // property members:
   QString mDateTimeFormat;
-  Qt::TimeSpec mDateTimeSpec;
 #if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
   QTimeZone mTimeZone;
 #endif

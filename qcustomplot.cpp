@@ -6614,7 +6614,7 @@ double QCPAxisTicker::cleanMantissa(double input) const {
 */
 QCPAxisTickerDateTime::QCPAxisTickerDateTime()
     : mDateTimeFormat(QLatin1String("hh:mm:ss\ndd.MM.yy")),
-      mDateTimeSpec(Qt::LocalTime), mDateStrategy(dsNone) {
+      mDateStrategy(dsNone) {
   setTickCount(4);
 }
 
@@ -6688,10 +6688,6 @@ void QCPAxisTickerDateTime::setDateTimeFormat(const QString &format) {
 
   \see setDateTimeFormat, setTimeZone
 */
-void QCPAxisTickerDateTime::setDateTimeSpec(Qt::TimeSpec spec) {
-  mDateTimeSpec = spec;
-}
-
 #if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
 /*!
   Sets the time zone that is used for creating the tick labels from
@@ -6702,7 +6698,6 @@ void QCPAxisTickerDateTime::setDateTimeSpec(Qt::TimeSpec spec) {
 */
 void QCPAxisTickerDateTime::setTimeZone(const QTimeZone &zone) {
   mTimeZone = zone;
-  mDateTimeSpec = Qt::TimeZone;
 }
 #endif
 
@@ -6878,17 +6873,8 @@ QString QCPAxisTickerDateTime::getTickLabel(double tick, const QLocale &locale,
                                             QChar formatChar, int precision) {
   Q_UNUSED(precision)
   Q_UNUSED(formatChar)
-#if QT_VERSION >= QT_VERSION_CHECK(5, 2, 0)
-  if (mDateTimeSpec == Qt::TimeZone)
-    return locale.toString(keyToDateTime(tick).toTimeZone(mTimeZone),
-                           mDateTimeFormat);
-  else
-    return locale.toString(keyToDateTime(tick).toTimeSpec(mDateTimeSpec),
-                           mDateTimeFormat);
-#else
-  return locale.toString(keyToDateTime(tick).toTimeSpec(mDateTimeSpec),
+  return locale.toString(keyToDateTime(tick).toTimeZone(mTimeZone),
                          mDateTimeFormat);
-#endif
 }
 
 /*! \internal
@@ -6996,14 +6982,13 @@ double QCPAxisTickerDateTime::dateTimeToKey(const QDateTime &dateTime) {
 
   \see keyToDateTime
 */
-double QCPAxisTickerDateTime::dateTimeToKey(const QDate &date,
-                                            Qt::TimeSpec timeSpec) {
+double QCPAxisTickerDateTime::dateTimeToKey(const QDate &date, QTimeZone zone) {
 #if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
   return QDateTime(date, QTime(0, 0), timeSpec).toTime_t();
 #elif QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
   return QDateTime(date, QTime(0, 0), timeSpec).toMSecsSinceEpoch() / 1000.0;
 #else
-  return date.startOfDay(timeSpec).toMSecsSinceEpoch() / 1000.0;
+  return date.startOfDay(zone).toMSecsSinceEpoch() / 1000.0;
 #endif
 }
 /* end of 'src/axis/axistickerdatetime.cpp' */
@@ -14576,8 +14561,8 @@ void QCustomPlot::setBufferDevicePixelRatio(double ratio) {
     mBufferDevicePixelRatio = ratio;
     foreach (QSharedPointer<QCPAbstractPaintBuffer> buffer, mPaintBuffers)
       buffer->setDevicePixelRatio(mBufferDevicePixelRatio);
-      // Note: axis label cache has devicePixelRatio as part of cache hash, so
-      // no need to manually clear cache here
+    // Note: axis label cache has devicePixelRatio as part of cache hash, so
+    // no need to manually clear cache here
 #else
     qDebug() << Q_FUNC_INFO
              << "Device pixel ratios not supported for Qt versions before 5.4";
@@ -21131,8 +21116,13 @@ void QCPColorScaleAxisRectPrivate::draw(QCPPainter *painter) {
                   mParentColorScale->type() == QCPAxis::atRight);
   }
 
+  Qt::Orientations orient;
+  if (mirrorHorz)
+    orient |= Qt::Horizontal;
+  if (mirrorVert)
+    orient |= Qt::Vertical;
   painter->drawImage(rect().adjusted(0, -1, 0, -1),
-                     mGradientImage.mirrored(mirrorHorz, mirrorVert));
+                     mGradientImage.flipped(orient));
   QCPAxisRect::draw(painter);
 }
 
@@ -28015,7 +28005,13 @@ void QCPColorMap::updateLegendIcon(Qt::TransformationMode transformMode,
     bool mirrorY =
         (valueAxis()->orientation() == Qt::Vertical ? valueAxis() : keyAxis())
             ->rangeReversed();
-    mLegendIcon = QPixmap::fromImage(mMapImage.mirrored(mirrorX, mirrorY))
+    Qt::Orientations orient;
+    if (mirrorX)
+      orient |= Qt::Horizontal;
+    if (mirrorY)
+      orient |= Qt::Vertical;
+
+    mLegendIcon = QPixmap::fromImage(mMapImage.flipped(orient))
                       .scaled(thumbSize, Qt::KeepAspectRatio, transformMode);
   }
 }
@@ -28312,7 +28308,12 @@ void QCPColorMap::draw(QCPPainter *painter) {
                                .normalized();
     localPainter->setClipRect(tightClipRect, Qt::IntersectClip);
   }
-  localPainter->drawImage(imageRect, mMapImage.mirrored(mirrorX, mirrorY));
+  Qt::Orientations orient;
+  if (mirrorX)
+    orient |= Qt::Horizontal;
+  if (mirrorY)
+    orient |= Qt::Vertical;
+  localPainter->drawImage(imageRect, mMapImage.flipped(orient));
   if (mTightBoundary)
     localPainter->setClipRegion(clipBackup);
   localPainter->setRenderHint(QPainter::SmoothPixmapTransform, smoothBackup);
@@ -31820,9 +31821,14 @@ void QCPItemPixmap::updateScaledPixmap(QRect finalRect, bool flipHorz,
         finalRect.size() != mScaledPixmap.size() / devicePixelRatio) {
       mScaledPixmap = mPixmap.scaled(finalRect.size() * devicePixelRatio,
                                      mAspectRatioMode, mTransformationMode);
-      if (flipHorz || flipVert)
-        mScaledPixmap = QPixmap::fromImage(
-            mScaledPixmap.toImage().mirrored(flipHorz, flipVert));
+      Qt::Orientations orient;
+      if (flipHorz)
+        orient |= Qt::Horizontal;
+      if (flipVert)
+        orient |= Qt::Vertical;
+      if (orient)
+        mScaledPixmap =
+            QPixmap::fromImage(mScaledPixmap.toImage().flipped(orient));
 #ifdef QCP_DEVICEPIXELRATIO_SUPPORTED
       mScaledPixmap.setDevicePixelRatio(devicePixelRatio);
 #endif
