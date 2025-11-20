@@ -2077,9 +2077,13 @@ public:
   // static methods:
   static QDateTime keyToDateTime(double key);
   static double dateTimeToKey(const QDateTime &dateTime);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
   static double dateTimeToKey(const QDate &date,
                               QTimeZone zone = QTimeZone::LocalTime);
-
+#else
+  static double dateTimeToKey(const QDate &date,
+                              Qt::TimeSpec timeSpec = Qt::LocalTime);
+#endif
 protected:
   // property members:
   QString mDateTimeFormat;

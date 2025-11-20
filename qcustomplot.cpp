@@ -6982,13 +6982,13 @@ double QCPAxisTickerDateTime::dateTimeToKey(const QDateTime &dateTime) {
 
   \see keyToDateTime
 */
+#if QT_VERSION >= QT_VERSION_CHECK(6, 5, 0)
 double QCPAxisTickerDateTime::dateTimeToKey(const QDate &date, QTimeZone zone) {
-#if QT_VERSION < QT_VERSION_CHECK(4, 7, 0)
-  return QDateTime(date, QTime(0, 0), timeSpec).toTime_t();
-#elif QT_VERSION < QT_VERSION_CHECK(5, 14, 0)
-  return QDateTime(date, QTime(0, 0), timeSpec).toMSecsSinceEpoch() / 1000.0;
-#else
   return date.startOfDay(zone).toMSecsSinceEpoch() / 1000.0;
+#else
+double QCPAxisTickerDateTime::dateTimeToKey(const QDate &date,
+                                            Qt::TimeSpec timeSpec) {
+  return date.startOfDay(timeSpec).toMSecsSinceEpoch() / 1000.0;
 #endif
 }
 /* end of 'src/axis/axistickerdatetime.cpp' */
